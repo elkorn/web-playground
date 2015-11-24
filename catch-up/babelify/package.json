@@ -1,0 +1,23 @@
+{
+  "name": "_babelify",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build-js": "browserify -d main.js -o out.js -t [ babelify --presets [ es2015, stage-0 ] ]",
+    "watch-js": "watchify main.js -o out.js -dv"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "babel-preset-es2015": "^6.1.18",
+    "babel-preset-stage-0": "^6.1.18",
+    "babelify": "^7.2.0",
+    "browserify": "^12.0.1",
+    "watchify": "^3.6.1"
+  },
+  "dependencies": {
+    "lodash": "^3.10.1"
+  }
+}
