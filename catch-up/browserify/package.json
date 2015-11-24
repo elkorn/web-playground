@@ -1,0 +1,20 @@
+{
+    "name": "browserify",
+    "version": "1.0.0",
+    "description": "",
+    "main": "main.js",
+    "dependencies": {
+        "lodash": "^3.10.1"
+    },
+    "devDependencies": {
+        "browserify": "latest",
+        "watchify": "latest"
+    },
+    "scripts": {
+        "build-js": "browserify main.js > out.js",
+        "watch-js": "watchify main.js -o out.js -dv",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "",
+    "license": "ISC"
+}
