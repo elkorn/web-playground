@@ -1,20 +1,13 @@
-var contacts = [{
-    key: 1,
-    name: 'Foo Bar',
-    email: 'foobar@foobar.com',
-    description: 'Foo + Bar'
-}, {
-    key: 2,
-    name: 'Baz Quux',
-    email: 'bazquux@foobar.com',
-    description: 'Baz + Quux'
-}];
+var state = {};
 
-var newContact = {
-    name: '',
-    email: '',
-    description: ''
-};
+function contactTemplate() {
+    return {
+        name: '',
+        email: '',
+        description: ''
+    };
+}
+
 
 var ContactItem = React.createClass({
     propTypes: {
@@ -34,46 +27,55 @@ var ContactItem = React.createClass({
     }
 });
 
+function updateOnChange(prop, stateProp) {
+    return function(event) {
+        var previousState = this.props[stateProp];
+        var onChange = this.props.onChange;
+
+        var patch = {};
+        patch[prop] = event.target.value;
+        onChange(Object.assign({}, previousState, patch));
+    };
+}
+
 var ContactForm = React.createClass({
     propTypes: {
         contact: React.PropTypes.object.isRequired,
-        onChange: React.PropTypes.func.isRequired
+        onChange: React.PropTypes.func.isRequired,
+        submitNewContact: React.PropTypes.func.isRequired
+    },
+    updateName: updateOnChange('name', 'contact'),
+    updateEmail: updateOnChange('email', 'contact'),
+    updateDescription: updateOnChange('description', 'contact'),
+    submitNewContact: function(e) {
+        e.preventDefault();
+        this.props.submitNewContact(this.props.contact);
     },
     render() {
-        var self = this;
-        var previousContact = this.props.contact;
-        var onChange = this.props.onChange;
-
-        function update(prop) {
-            return function(event) {
-                var patch = {};
-                patch[prop] = event.target.value;
-                onChange(Object.assign({}, previousContact, patch));
-            };
-        }
-
         return (
-            React.createElement('form', {},
+            React.createElement('form', {
+                onSubmit: this.submitNewContact
+            },
                                 React.createElement('input', {
                                     type: 'text',
                                     value: this.props.contact.name,
                                     htmlFor: 'name',
                                     placeholder: 'Name',
-                                    onChange: update('name')
+                                    onChange: this.updateName
                                 }),
                                 React.createElement('input', {
                                     type: 'email',
                                     value: this.props.contact.email,
                                     htmlFor: 'email',
                                     placeholder: 'Email',
-                                    onChange: update('email')
+                                    onChange: this.updateEmail
                                 }),
                                 React.createElement('textarea', {
                                     type: 'description',
                                     value: this.props.contact.description,
                                     htmlFor: 'description',
                                     placeholder: 'Description',
-                                    onChange: update('description')
+                                    onChange: this.updateDescription
                                 }),
                                 React.createElement('button', {
                                     type: 'submit'
@@ -84,7 +86,9 @@ var ContactForm = React.createClass({
 var ContactView = React.createClass({
     propTypes: {
         contacts: React.PropTypes.array.isRequired,
-        newContact: React.PropTypes.object.isRequired
+        newContact: React.PropTypes.object.isRequired,
+        onChange: React.PropTypes.func.isRequired,
+        submitNewContact: React.PropTypes.func.isRequired
     },
     render() {
         var contactItems = this.props.contacts.map(function(contact) {
@@ -96,27 +100,59 @@ var ContactView = React.createClass({
                                 React.createElement('ul', {}, contactItems),
                                 React.createElement(ContactForm, {
                                     contact: this.props.newContact,
-                                    onChange: this.props.onChange
+                                    onChange: this.props.onChange,
+                                    submitNewContact: this.props.submitNewContact
                                 })
                                ));
     }
 });
 
+function submitNewContact(contactToAdd) {
+    var existingContacts = state.contacts;
+    var newContact = Object.assign({
+        key: state.contacts.length
+    }, contactToAdd);
+
+    setState({
+        contacts: state.contacts.concat([newContact]),
+        newContact: contactTemplate()
+    });
+}
+
 function renderApplication(state) {
     ReactDOM.render(React.createElement(ContactView, {
         contacts: state.contacts,
         newContact: state.newContact,
-        onChange: onContactChange
+        onChange: onContactChange,
+        submitNewContact
     }), document.getElementById('react-app'));
 }
 
 function onContactChange(contact) {
-    Object.assign(newContact, contact);
-    renderApplication({
-        contacts, newContact
+    setState({
+        newContact: contact
     });
 }
 
-renderApplication({
-    contacts, newContact
+function setState(changes) {
+    renderApplication(Object.assign(state, changes));
+}
+
+setState({
+    contacts: [{
+        key: 0,
+        name: 'Foo Bar',
+        email: 'foobar@foobar.com',
+        description: 'Foo + Bar'
+    }, {
+        key: 1,
+        name: 'Baz Quux',
+        email: 'bazquux@foobar.com',
+        description: 'Baz + Quux'
+    }],
+    newContact: {
+        name: '',
+        email: '',
+        description: ''
+    }
 });
