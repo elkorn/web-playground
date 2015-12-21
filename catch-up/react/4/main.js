@@ -4,7 +4,8 @@ function contactTemplate() {
     return {
         name: '',
         email: '',
-        description: ''
+        description: '',
+        errors: {}
     };
 }
 
@@ -52,13 +53,16 @@ var ContactForm = React.createClass({
         this.props.submitNewContact(this.props.contact);
     },
     render() {
+        var errors = this.props.contact.errors;
         return (
             React.createElement('form', {
-                onSubmit: this.submitNewContact
+                onSubmit: this.submitNewContact,
+                noValidate: true
             },
                                 React.createElement('input', {
                                     type: 'text',
                                     value: this.props.contact.name,
+                                    className: errors.name && 'ContactForm-error',
                                     htmlFor: 'name',
                                     placeholder: 'Name',
                                     onChange: this.updateName
@@ -66,6 +70,7 @@ var ContactForm = React.createClass({
                                 React.createElement('input', {
                                     type: 'email',
                                     value: this.props.contact.email,
+                                    className: errors.email && 'ContactForm-error',
                                     htmlFor: 'email',
                                     placeholder: 'Email',
                                     onChange: this.updateEmail
@@ -107,16 +112,42 @@ var ContactView = React.createClass({
     }
 });
 
+function hasErrors(contact) {
+    var errors = Object.keys(contact.errors);
+    return errors.length && errors.some(function(err) {
+        return contact.errors[err];
+    });
+}
+
 function submitNewContact(contactToAdd) {
     var existingContacts = state.contacts;
     var newContact = Object.assign({
-        key: state.contacts.length
+        key: state.contacts.length,
+        errors: {}
     }, contactToAdd);
 
-    setState({
-        contacts: state.contacts.concat([newContact]),
-        newContact: contactTemplate()
-    });
+    if (!/.+@.+\..+/.test(newContact.email)) {
+        newContact.errors.email = ["Please enter your new contact's email"];
+    } else {
+        newContact.errors.email = null;
+    }
+
+    if (!newContact.name) {
+        newContact.errors.name = ["Please enter your new contact's name"];
+    } else {
+        newContact.errors.name = null;
+    }
+
+    if (hasErrors(newContact)) {
+        setState({
+            newContact: newContact
+        });
+    } else {
+        setState({
+            contacts: state.contacts.concat([newContact]),
+            newContact: contactTemplate()
+        });
+    }
 }
 
 function renderApplication(state) {
@@ -143,16 +174,20 @@ setState({
         key: 0,
         name: 'Foo Bar',
         email: 'foobar@foobar.com',
-        description: 'Foo + Bar'
+        description: 'Foo + Bar',
+        errors: {}
     }, {
         key: 1,
         name: 'Baz Quux',
         email: 'bazquux@foobar.com',
-        description: 'Baz + Quux'
+        description: 'Baz + Quux',
+        errors: {}
     }],
     newContact: {
         name: '',
         email: '',
-        description: ''
+        description: '',
+        errors: {}
+
     }
 });
