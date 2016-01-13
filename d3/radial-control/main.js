@@ -44,8 +44,7 @@ function arcTween(transition, newAngle, width, arc) {
 
 function outerIndicator(max) {
     var sliderWidth = 0.127;
-    var outerIndicator = svg.append("g");
-    outerIndicator.classed('outer-indicator', true);
+    var outerIndicator = svg.append("g").classed('outer-indicator', true);
     var outerIndicatorArc =
         d3.svg.arc()
         .innerRadius(max - 2)
@@ -86,10 +85,8 @@ function outerSlider(max) {
     var highlightStart = .11;
     var highlightEnd = .43;
 
-    var outerSlider = svg.append('g');
-    outerSlider.classed('outer-slider', true);
-    var outerSliderHighlight = outerSlider.append('g');
-    outerSliderHighlight.classed('outer-slider-highlight', true);
+    var outerSlider = svg.append('g').classed('outer-slider', true);
+    var outerSliderHighlight = outerSlider.append('g').classed('outer-slider-highlight', true);
 
     var outerSliderHighlightOuterBorderArc = arc(max, 1, {
         fill: 'rgba(255,255,255,0.4)'
@@ -129,13 +126,10 @@ function outerSlider(max) {
                                     });
 
     var smalls = smallSegmentArcs.map(function(arc, i) {
-        // console.log((highlightStart + i * smallSegmentWidth + i * smallSegmentPadding), (highlightStart + i * smallSegmentPadding + (i + 1) * smallSegmentWidth));
         return outerSliderHighlight.append('path')
             .datum({
                 startAngle: scale(i) * tau,
                 endAngle: (scale(i) + scale.rangeBand()) * tau
-                // startAngle: (highlightStart + i * smallSegmentPadding + i * smallSegmentWidth) * tau,
-                // endAngle: (highlightStart + i * smallSegmentPadding + (i + 1) * smallSegmentWidth) * tau
             }).attr({
                 d: arc.d,
                 transform: 'rotate(-30, 50, 50) translate(50,50)'
@@ -150,15 +144,175 @@ function innerCoordinateCircle(max) {
 
     circleElement.classed('inner-coordinate-circle');
 
-    var c = circle(max-1, 1, {
+    var c = circle(max - 1, 1, {
         fill: 'rgba(255,255,255,0.4)'
     });
 
     circleElement.append('path').attr({
         d: c.d,
     }).style(c.style);
+
+    var numberOfTicks = 24;
+    var tickSize = 2;
+    var tickScale = d3.scale.ordinal().domain(d3.range(numberOfTicks)).rangeBands([0, 1]);
+
+    var ticks = d3.range(numberOfTicks).map(function(i) {
+        return circleElement.append('line').attr({
+            x1: 0,
+            y1: 0,
+            x2: tickSize,
+            y2: 0,
+            transform: 'rotate(' + (tickScale(i) * 360) + ') translate(' + (max - tickSize - 1) + ',0)'
+        })
+            .style({
+                stroke: 'rgba(255,255,255,0.4)'
+            });
+    });
+
+    var smallSegmentsCount = 12;
+
+    var scale = d3.scale.ordinal().domain(d3.range(smallSegmentsCount)).rangeBands([0, 0.5], 0.9);
+
+    var smallSegmentArcs = range(1, smallSegmentsCount).map(function() {
+        return arc(max - 7, 1, {
+            fill: 'rgba(255,255,255,0.7)'
+        });
+    });
+
+    var smalls = smallSegmentArcs.map(function(arc, i) {
+        return circleElement.append('path')
+            .datum({
+                startAngle: scale(i) * tau,
+                endAngle: (scale(i) + scale.rangeBand()) * tau
+            }).attr({
+                d: arc.d,
+            }).style(arc.style);
+    });
+
+    function barArc(start, width) {
+        return {
+            background: arc(start, width, {
+                fill: 'rgba(255,255,255,0.4)'
+            }),
+            foreground: arc(start + 1, width - 2, {
+                fill: 'rgba(255,255,255,0.7)'
+            })
+        };
+    }
+
+    var barsCount = 12;
+    var barBgScale = d3.scale.ordinal().domain(d3.range(barsCount))
+        .rangeBands([0.5, 1]);
+    var barFgScale = d3.scale.ordinal().domain(d3.range(barsCount))
+        .rangeBands([0.5, 1], .1);
+    var bars = d3.range(barsCount).map(function(i) {
+        var arc = barArc(max - 9, 4);
+        circleElement.append('path')
+            .datum({
+                startAngle: barBgScale(i) * tau,
+                endAngle: (barBgScale(i) + barBgScale.rangeBand()) * tau
+            })
+            .attr({
+                d: arc.background.d
+            }).style(arc.background.style);
+        circleElement.append('path')
+            .datum({
+                startAngle: barFgScale(i) * tau,
+                endAngle: (barFgScale(i) + barFgScale.rangeBand()) * tau
+            })
+            .attr({
+                d: arc.foreground.d
+            }).style(arc.foreground.style);
+    });
 }
 
+function innerCircle(max) {
+    var container = svg.append('g').attr({
+        transform: 'translate(50,50)'
+    });
+
+    container.classed('inner-circle');
+
+    var outerCircle = circle(max - 1, 1, {
+        fill: 'rgba(255,255,255,0.4)'
+    });
+
+    container.append('path').attr({
+        d: outerCircle.d,
+    }).style(outerCircle.style);
+
+    container.append('line').attr({
+        x1: 0,
+        y1: 0,
+        x2: max - 1,
+        y2: 0,
+        transform: 'rotate(90)'
+    }).style({
+        stroke: 'rgba(255,255,255,0.2)',
+    });
+
+    container.append('line').attr({
+        x1: 0,
+        y1: 0,
+        x2: max / 3,
+        y2: 0,
+        transform: 'rotate(90)'
+    }).style({
+        stroke: 'rgba(255,255,255,0.4)',
+    });
+
+    var innerCircle = circle(max - 19, 0.5, {
+        fill: 'rgba(255,255,255,0.2)'
+    });
+
+    container.append('path').attr({
+        d: innerCircle.d,
+    }).style(innerCircle.style);
+}
+
+function pin(container, max, rotation) {
+    var group = container.append('g');
+    group.classed('pin', true);
+
+    group.append('line').attr({
+        x1: 15,
+        y1: 0,
+        x2: max - 2,
+        y2: 0,
+        transform: 'translate(50,50) rotate(' + rotation + ')'
+    }).style({
+        stroke: 'rgba(255,255,255,0.2)',
+        'stroke-width': 0.5
+    });
+
+    group.append('circle').attr({
+        cx: max - 1,
+        cy: 0,
+        r: 1,
+        transform: 'translate(50,50) rotate(' + rotation + ')'
+    }).style({
+        fill: 'rgba(255,255,255,0.2)',
+    });
+}
+
+function guideCircle(container, max) {
+    container.append('circle').attr({
+        cx: 50,
+        cy: 50,
+        r: max-1
+    }).style({
+        fill: 'none',
+        stroke: 'rgba(255,255,255,0.1)',
+        'stroke-width': 0.5
+    });
+}
+
+guideCircle(svg, 49);
+guideCircle(svg, 46);
+guideCircle(svg, 41);
 outerIndicator(50);
 outerSlider(44);
 innerCoordinateCircle(38);
+innerCircle(25);
+pin(svg, 50, 45);
+pin(svg, 50, 75);
