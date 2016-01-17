@@ -42,6 +42,21 @@ function arcTween(transition, newAngle, width, arc) {
     });
 }
 
+function drawCircle(container, circle) {
+    container.append('path').attr({
+        d: circle.d,
+    }).style(circle.style);
+}
+
+function drawArc(container, arc, start, end) {
+    container.append('path').datum({
+        startAngle: start * tau,
+        endAngle: end * tau,
+    }).attr({
+        d: arc.d
+    }).style(arc.style);
+}
+
 function outerIndicator(max) {
     var sliderWidth = 0.127;
     var outerIndicator = svg.append("g").classed('outer-indicator', true);
@@ -169,9 +184,9 @@ function innerCoordinateCircle(max) {
             });
     });
 
-    var smallSegmentsCount = 12;
+    var smallSegmentsCount = 24;
 
-    var scale = d3.scale.ordinal().domain(d3.range(smallSegmentsCount)).rangeBands([0, 0.5], 0.9);
+    var scale = d3.scale.ordinal().domain(d3.range(smallSegmentsCount)).rangeBands([0, 1], 0.9);
 
     var smallSegmentArcs = range(1, smallSegmentsCount).map(function() {
         return arc(max - 7, 1, {
@@ -237,12 +252,22 @@ function innerCircle(max) {
         fill: 'rgba(255,255,255,0.4)'
     });
 
-    container.append('path').attr({
-        d: outerCircle.d,
-    }).style(outerCircle.style);
+    drawCircle(container, outerCircle);
+
+    var mediumCircle = circle(max - 16, 0.5, {
+        fill: 'rgba(255,255,255,0.2)'
+    });
+
+    drawCircle(container, mediumCircle);
+
+    var circleBreak = arc(max - 16.2, 1, {
+        fill: '#111'
+    });
+
+    drawArc(container, circleBreak, 0.47, 0.53);
 
     container.append('line').attr({
-        x1: 0,
+        x1: 8,
         y1: 0,
         x2: max - 1,
         y2: 0,
@@ -252,9 +277,9 @@ function innerCircle(max) {
     });
 
     container.append('line').attr({
-        x1: 0,
+        x1: 8,
         y1: 0,
-        x2: max / 3,
+        x2: 14,
         y2: 0,
         transform: 'rotate(90)'
     }).style({
@@ -268,6 +293,67 @@ function innerCircle(max) {
     container.append('path').attr({
         d: innerCircle.d,
     }).style(innerCircle.style);
+
+    // CROSSHAIR
+    container.append('line').attr({
+        x1: 0,
+        x2: 0,
+        y1: -1.5,
+        y2: 1.5
+    }).style({
+        stroke: 'rgba(255,255,255,0.4)',
+        'stroke-width': 0.75,
+    });
+
+    container.append('line').attr({
+        x1: -1.5,
+        x2: 1.5,
+        y1: 0,
+        y2: 0
+    }).style({
+        stroke: 'rgba(255,255,255,0.4)',
+        'stroke-width': 0.75,
+    });
+
+    container.append('line').attr({
+        y1: 4,
+        y2: 5.5,
+        x1: 0,
+        x2: 0
+    }).style({
+        stroke: 'rgba(255,255,255,0.4)',
+        'stroke-width': 0.75,
+    });
+
+    container.append('line').attr({
+        y1: -5.5,
+        y2: -4,
+        x1: 0,
+        x2: 0
+    }).style({
+        stroke: 'rgba(255,255,255,0.4)',
+        'stroke-width': 0.75,
+    });
+
+    container.append('line').attr({
+        x1: 4,
+        x2: 5.5,
+        y1: 0,
+        y2: 0
+    }).style({
+        stroke: 'rgba(255,255,255,0.4)',
+        'stroke-width': 0.75,
+    });
+
+    container.append('line').attr({
+        x1: -5.5,
+        x2: -4,
+        y1: 0,
+        y2: 0
+    }).style({
+        stroke: 'rgba(255,255,255,0.4)',
+        'stroke-width': 0.75,
+    });
 }
 
 function pin(container, max, rotation) {
@@ -299,7 +385,7 @@ function guideCircle(container, max) {
     container.append('circle').attr({
         cx: 50,
         cy: 50,
-        r: max-1
+        r: max - 1
     }).style({
         fill: 'none',
         stroke: 'rgba(255,255,255,0.1)',
