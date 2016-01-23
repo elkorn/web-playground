@@ -8,12 +8,15 @@
 
 ;; define your app data so that it doesn't get over-written on reload
 
-(def app-state (atom {:text "Hello world!" :subtext "huppa-duppa" :decisions [{:title "First decision"}]}))
+(def app-state (atom {:text "Hello world!" :subtext "huppa-duppa" :decisions [{:title "First decision" :score 0}]}))
 
 (defn decision-list [decisions new-decision owner]
   (dom/div nil
-    (om/build-all decision/decision decisions ))
+    (dom/ul #js {:className "decisions" }
+            (dom/li #js {:className "new-decision"})
+            (om/build-all decision/decision decisions )))
   )
+
 (defn header []
   (dom/header #js {:id "header"}
     (dom/h1 nil "Big decisions")))
