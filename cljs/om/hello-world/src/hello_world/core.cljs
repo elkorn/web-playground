@@ -1,5 +1,7 @@
 (ns hello-world.core
-  (:require [om.core :as om :include-macros true]
+  (:require-macros [cljs.core.async.macros :refer [go]])
+  (:require [cljs.core.async :refer [put! <! chan]]
+            [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
             [hello-world.decision :as decision]))
 
@@ -10,23 +12,40 @@
 
 (def app-state (atom {:text "Hello world!" :subtext "huppa-duppa" :decisions [{:title "First decision" :score 0}]}))
 
-(defn decision-list [decisions new-decision owner]
+(defn decision-list [{:keys [decisions] :as state} comm]
   (dom/div nil
     (dom/ul #js {:className "decisions" }
             (dom/li #js {:className "new-decision"})
-            (om/build-all decision/decision decisions )))
+            (om/build-all decision/decision decisions {:init-state {:comm comm} :key :id})))
   )
 
 (defn header []
   (dom/header #js {:id "header"}
     (dom/h1 nil "Big decisions")))
 
-(defn big-decision-app [{:keys [decisions new-decision] :as state} owner]
-  (reify om/IRender
-    (render [_]
+(defn destroy-decision [state {:keys [id]}]
+  (om/transact! state :decisions
+    (fn [decisions] (vec (remove #(= (:id %) id) decisions)))))
+
+(defn handle-event [type state val]
+  (case type
+    :destroy (destroy-decision state val)
+    nil))
+
+(defn big-decision-app [{:keys [decisions] :as state} owner]
+  (reify
+    om/IWillMount
+    (will-mount [_]
+      (let [comm (chan)]
+        (om/set-state! owner :comm comm)
+        (go (while true
+              (let [[type value] (<! comm)]
+                (handle-event type state value))))))
+    om/IRenderState
+    (render-state [_ {:keys [comm]}]
       (dom/div nil
-        (header)
-        (decision-list decisions new-decision owner)))))
+               (header)
+               (decision-list state comm)))))
 
 (om/root
   big-decision-app

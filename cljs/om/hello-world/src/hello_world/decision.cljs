@@ -1,5 +1,6 @@
 (ns hello-world.decision
-  (:require [clojure.string :as string]
+  (:require [cljs.core.async :refer [put!]]
+            [clojure.string :as string]
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
             [hello-world.utils :refer [ENTER_KEY]]))
@@ -36,6 +37,10 @@
     (om/set-state! owner :is-editing 0)
     (om/transact! decision :title #(om/get-state owner :edit-text))))
 
+(defn destroy [decision comm]
+  (println comm)
+  (put! comm [:destroy @decision]))
+
 ;; Component
 
 (defn decision [decision owner]
@@ -47,7 +52,7 @@
        :is-editing 0})
 
     om/IRenderState
-    (render-state [_ state]
+    (render-state [_ {:keys [comm] :as state}]
       (dom/li #js {:className "decision"}
               (dom/div #js {:className "decision-view"}
           (if
@@ -63,6 +68,9 @@
           (dom/button #js {:className "decision-downvote"
                            :onClick   #(downvote % decision)
                            :disabled  (downvote-disabled decision)} "-")
+          (dom/button #js {:className "decision-destroy"
+                           :onClick   #(destroy decision comm)
+                           :disabled  (upvote-disabled decision)} "X")
           (stars decision))))
     )
   )
