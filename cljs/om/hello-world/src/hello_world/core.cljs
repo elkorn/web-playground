@@ -3,7 +3,9 @@
   (:require [cljs.core.async :refer [put! <! chan]]
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
-            [hello-world.decision :as decision]))
+            [hello-world.utils :refer [guid]]
+            [hello-world.decision :as decision]
+            [hello-world.new-decision :as new-decision]))
 
 
 (enable-console-print!)
@@ -15,7 +17,7 @@
 (defn decision-list [{:keys [decisions] :as state} comm]
   (dom/div nil
     (dom/ul #js {:className "decisions" }
-            (dom/li #js {:className "new-decision"})
+            (om/build new-decision/new-decision {} {:init-state {:comm comm}})
             (om/build-all decision/decision decisions {:init-state {:comm comm} :key :id})))
   )
 
@@ -27,9 +29,13 @@
   (om/transact! state :decisions
     (fn [decisions] (vec (remove #(= (:id %) id) decisions)))))
 
+(defn create-decision [state title]
+  (om/transact! state :decisions #(conj % {:title title :score 0 :id (guid)})))
+
 (defn handle-event [type state val]
   (case type
     :destroy (destroy-decision state val)
+    :create (create-decision state val)
     nil))
 
 (defn big-decision-app [{:keys [decisions] :as state} owner]

@@ -38,7 +38,6 @@
     (om/transact! decision :title #(om/get-state owner :edit-text))))
 
 (defn destroy [decision comm]
-  (println comm)
   (put! comm [:destroy @decision]))
 
 ;; Component
@@ -69,8 +68,7 @@
                            :onClick   #(downvote % decision)
                            :disabled  (downvote-disabled decision)} "-")
           (dom/button #js {:className "decision-destroy"
-                           :onClick   #(destroy decision comm)
-                           :disabled  (upvote-disabled decision)} "X")
+                           :onClick   #(destroy decision comm)} "X")
           (stars decision))))
     )
   )
