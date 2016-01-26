@@ -14,11 +14,11 @@
 
 (def app-state (atom {:text "Hello world!" :subtext "huppa-duppa" :decisions [{:title "First decision" :score 0}]}))
 
-(defn decision-list [{:keys [decisions] :as state} comm]
+(defn project [{:keys [decisions] :as state} comm]
   (dom/div nil
     (dom/ul #js {:className "decisions" }
             (om/build new-decision/new-decision {} {:init-state {:comm comm}})
-            (om/build-all decision/decision decisions {:init-state {:comm comm} :key :id})))
+            (om/build-all decision/decision (sort-by :score #(> % %2) decisions) {:init-state {:comm comm} :key :id})))
   )
 
 (defn header []
@@ -51,7 +51,7 @@
     (render-state [_ {:keys [comm]}]
       (dom/div nil
                (header)
-               (decision-list state comm)))))
+               (project state comm)))))
 
 (om/root
   big-decision-app
