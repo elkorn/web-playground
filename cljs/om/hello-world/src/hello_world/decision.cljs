@@ -38,7 +38,7 @@
     (om/transact! decision :title #(om/get-state owner :edit-text))))
 
 (defn destroy [project-id decision comm]
-  (put! comm [:destroy {:project-id project-id :decision @decision}]))
+  (put! comm [:destroy-decision {:project-id project-id :decision @decision}]))
 
 ;; Component
 

@@ -3,79 +3,23 @@
   (:require [cljs.core.async :refer [put! <! chan]]
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
+            [hello-world.app-state :as app-state]
             [hello-world.utils :refer [guid indices comp-id]]
             [hello-world.new-project :as new-project]
             [hello-world.project :as project]))
 
-
 (enable-console-print!)
-
-;; define your app data so that it doesn't get over-written on reload
-
-(defonce app-state (atom {
-                          :projects [{
-                                      :id        (guid)
-                                      :name      "First project"
-                                      :decisions [
-                                                  {:id    (guid)
-                                                   :title "First decision"
-                                                   :score 0
-                                                   }
-                                                  ]
-                                      }
-                                     {
-                                      :id        (guid)
-                                      :name      "Second project"
-                                      :decisions [
-                                                  {
-                                                   :id    (guid)
-                                                   :title "First decision"
-                                                   :score 0
-                                                   }
-                                                  {
-                                                   :id    (guid)
-                                                   :title "Second decision"
-                                                   :score 0
-                                                   }
-                                                  ]
-                                      }]
-                          })
-  )
 
 (defn header []
   (dom/header #js {:id "header"}
               (dom/h1 nil "Big decisions")))
 
-(defn modify-project-decisions [state project-id modification]
-  (let [
-        project-index (first (keep-indexed (fn [i project] (when ((comp-id {:id project-id}) project) i)) (:projects state)))
-        project (get-in state [:projects project-index])]
-    (om/transact! project :decisions modification))
-  )
-
-(defn destroy-decision [{:keys [projects] :as state} {:keys [project-id  decision]}]
-  (modify-project-decisions state project-id #(vec (remove (comp-id decision) %)))
-  )
-
-(defn create-decision [{:keys [projects] :as state} {:keys [project-id title]}]
-  (modify-project-decisions state project-id #(conj % {:title title :score 0 :id (guid)}))
-  )
-
-(defn modify-projects [state modification]
-  (om/transact! state :projects modification))
-
-(defn destroy-project [state {:keys [project-id]}]
-  (modify-projects state #(vec (remove (comp-id {:id project-id}) %))))
-
-(defn create-project [state {:keys [name]}]
-  (modify-projects state #(conj % {:name name :id (guid) :projects []})))
-
 (defn handle-event [type state val]
   (case type
-    :destroy (destroy-decision state val)
-    :destroy-project (destroy-project state val)
-    :create (create-decision state val)
-    :create-project (create-project state val)
+    :destroy-decision (app-state/destroy-decision state val)
+    :create-decision (app-state/create-decision state val)
+    :destroy-project (app-state/destroy-project state val)
+    :create-project (app-state/create-project state val)
     nil))
 
 (defn big-decision-app [{:keys [projects] :as state} owner]
@@ -96,7 +40,7 @@
 
 (om/root
   big-decision-app
-  app-state
+  app-state/app-state
   {:target (. js/document (getElementById "app"))})
 
 (defn on-js-reload []

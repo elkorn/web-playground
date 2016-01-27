@@ -7,7 +7,7 @@
 
 (defn create [project-id title comm]
   ;; (put! comm [:create @decision])) ;; why does derefer not work here?
-  (put! comm [:create {:project-id project-id :title title}]))
+  (put! comm [:create-decision {:project-id project-id :title title}]))
 
 (defn enter-new-decision [project-id owner comm]
   (let [new-field      (om/get-node owner "newField")
