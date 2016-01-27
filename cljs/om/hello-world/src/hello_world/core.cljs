@@ -31,6 +31,11 @@
                                                    :title "First decision"
                                                    :score 0
                                                    }
+                                                  {
+                                                   :id    (guid)
+                                                   :title "Second decision"
+                                                   :score 0
+                                                   }
                                                   ]
                                       }]
                           })
@@ -40,18 +45,22 @@
   (dom/header #js {:id "header"}
               (dom/h1 nil "Big decisions")))
 
-(defn destroy-decision [{:keys [projects] :as state} {:keys [project-id  decision]}]
-  (let [comp-decision-id (fn [d] (= (:id d) (:id decision)))
-        project-index    (first (keep-indexed (fn [i project] (when (some comp-decision-id (:decisions project)) i)) projects))
-        decisions        (:decisions (nth projects project-index))]
-    (println decisions)
-    (om/transact! state :projects
-                  (fn [projects]  (assoc-in projects [project-index :decisions] (vec (remove comp-decision-id decisions)))))
-    )
+(defn comp-id [elem] (fn [d] (= (:id d) (:id elem))))
+
+(defn modify-project-decisions [state project-id modification]
+  (let [
+        project-index (first (keep-indexed (fn [i project] (when ((comp-id {:id project-id}) project) i)) (:projects state)))
+        project (get-in state [:projects project-index])]
+    (om/transact! project :decisions modification))
   )
 
-(defn create-decision [state title]
-  (om/transact! state :decisions #(conj % {:title title :score 0 :id (guid)})))
+(defn destroy-decision [{:keys [projects] :as state} {:keys [project-id  decision]}]
+  (modify-project-decisions state project-id #(vec (remove (comp-id decision) %)))
+  )
+
+(defn create-decision [{:keys [projects] :as state} {:keys [project-id title]}]
+  (modify-project-decisions state project-id #(conj % {:title title :score 0 :id (guid)}))
+  )
 
 (defn handle-event [type state val]
   (case type

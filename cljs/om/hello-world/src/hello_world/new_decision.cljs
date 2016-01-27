@@ -5,34 +5,34 @@
             [hello-world.utils :refer [ENTER_KEY]]
             [clojure.string :as string]))
 
-(defn create [title comm]
+(defn create [project-id title comm]
   ;; (put! comm [:create @decision])) ;; why does derefer not work here?
-  (put! comm [:create title]))
+  (put! comm [:create {:project-id project-id :title title}]))
 
-(defn enter-new-decision [owner comm]
+(defn enter-new-decision [project-id owner comm]
   (let [new-field      (om/get-node owner "newField")
         new-field-text (string/trim (.-value new-field))]
     (when-not (string/blank? new-field-text)
-      (create new-field-text comm)
+      (create project-id new-field-text comm)
       (set! (.-value new-field) ""))))
 
-(defn key-down [e owner comm]
+(defn key-down [e project-id owner comm]
   (when (== (.-which e) ENTER_KEY)
-    (enter-new-decision owner comm)))
+    (enter-new-decision project-id owner comm)))
 
 ;; Component
 
 (defn new-decision [_ owner]
   (reify
     om/IRenderState
-    (render-state [_ {:keys [comm]}]
+    (render-state [_ {:keys [comm project-id]}]
       (dom/li #js {:className "decision-new"}
               (dom/input #js {:className   "decision-name-edit"
                               :ref         "newField"
                               :placeholder "What needs to be decided?"
-                              :onKeyDown   #(key-down % owner comm)
+                              :onKeyDown   #(key-down % project-id owner comm)
                               })
-              (dom/button #js {:onClick #(enter-new-decision owner comm)
+              (dom/button #js {:onClick #(enter-new-decision project-id owner comm)
                                :required true} "Add")
               ))
     ))
