@@ -3,7 +3,7 @@
   (:require [cljs.core.async :refer [put! <! chan]]
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
-            [hello-world.utils :refer [guid indices]]
+            [hello-world.utils :refer [guid indices comp-id]]
             [hello-world.project :as project]))
 
 
@@ -24,7 +24,7 @@
                                       }
                                      {
                                       :id        (guid)
-                                      :name      "First project"
+                                      :name      "Second project"
                                       :decisions [
                                                   {
                                                    :id    (guid)
@@ -45,8 +45,6 @@
   (dom/header #js {:id "header"}
               (dom/h1 nil "Big decisions")))
 
-(defn comp-id [elem] (fn [d] (= (:id d) (:id elem))))
-
 (defn modify-project-decisions [state project-id modification]
   (let [
         project-index (first (keep-indexed (fn [i project] (when ((comp-id {:id project-id}) project) i)) (:projects state)))
@@ -62,9 +60,16 @@
   (modify-project-decisions state project-id #(conj % {:title title :score 0 :id (guid)}))
   )
 
+(defn modify-projects [state modification]
+  (om/transact! state :projects modification))
+
+(defn destroy-project [state {:keys [project-id]}]
+  (modify-projects state #(vec (remove (comp-id {:id project-id}) %))))
+
 (defn handle-event [type state val]
   (case type
     :destroy (destroy-decision state val)
+    :destroy-project (destroy-project state val)
     :create (create-decision state val)
     nil))
 
