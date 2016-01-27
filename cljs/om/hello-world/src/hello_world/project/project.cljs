@@ -4,7 +4,7 @@
    [om.core :as om :include-macros true]
    [om.dom :as dom :include-macros true]
    [hello-world.decision :as decision]
-   [hello-world.new-decision :as new-decision]))
+   [hello-world.decision.new-decision :as new-decision]))
 
 (defn destroy [e project-id comm]
   (put! comm [:destroy-project {:project-id project-id}])

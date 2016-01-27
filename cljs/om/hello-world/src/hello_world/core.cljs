@@ -5,7 +5,7 @@
             [om.dom :as dom :include-macros true]
             [hello-world.app-state :as app-state]
             [hello-world.utils :refer [guid indices comp-id]]
-            [hello-world.new-project :as new-project]
+            [hello-world.project.new-project :as new-project]
             [hello-world.project :as project]))
 
 (enable-console-print!)

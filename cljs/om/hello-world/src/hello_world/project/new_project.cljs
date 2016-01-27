@@ -1,4 +1,4 @@
-(ns hello-world.new-project
+(ns hello-world.project.new-project
   (:require [cljs.core.async :refer [put!]]
             [om.dom :as dom :include-macros true]
             [om.core :as om :include-macros true]

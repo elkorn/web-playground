@@ -1,4 +1,4 @@
-(ns hello-world.new-decision
+(ns hello-world.decision.new-decision
   (:require [cljs.core.async :refer [put!]]
             [om.dom :as dom :include-macros true]
             [om.core :as om :include-macros true]
