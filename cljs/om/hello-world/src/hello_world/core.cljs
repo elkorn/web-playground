@@ -3,31 +3,52 @@
   (:require [cljs.core.async :refer [put! <! chan]]
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
-            [hello-world.utils :refer [guid]]
-            [hello-world.decision :as decision]
-            [hello-world.new-decision :as new-decision]))
+            [hello-world.utils :refer [guid indices]]
+            [hello-world.project :as project]))
 
 
 (enable-console-print!)
 
 ;; define your app data so that it doesn't get over-written on reload
 
-(def app-state (atom {:text "Hello world!" :subtext "huppa-duppa" :decisions [{:title "First decision" :score 0}]}))
-
-(defn project [{:keys [decisions] :as state} comm]
-  (dom/div nil
-    (dom/ul #js {:className "decisions" }
-            (om/build new-decision/new-decision {} {:init-state {:comm comm}})
-            (om/build-all decision/decision (sort-by :score #(> % %2) decisions) {:init-state {:comm comm} :key :id})))
+(defonce app-state (atom {
+                          :projects [{
+                                      :id        (guid)
+                                      :name      "First project"
+                                      :decisions [
+                                                  {:id    (guid)
+                                                   :title "First decision"
+                                                   :score 0
+                                                   }
+                                                  ]
+                                      }
+                                     {
+                                      :id        (guid)
+                                      :name      "First project"
+                                      :decisions [
+                                                  {
+                                                   :id    (guid)
+                                                   :title "First decision"
+                                                   :score 0
+                                                   }
+                                                  ]
+                                      }]
+                          })
   )
 
 (defn header []
   (dom/header #js {:id "header"}
-    (dom/h1 nil "Big decisions")))
+              (dom/h1 nil "Big decisions")))
 
-(defn destroy-decision [state {:keys [id]}]
-  (om/transact! state :decisions
-    (fn [decisions] (vec (remove #(= (:id %) id) decisions)))))
+(defn destroy-decision [{:keys [projects] :as state} {:keys [project-id  decision]}]
+  (let [comp-decision-id (fn [d] (= (:id d) (:id decision)))
+        project-index    (first (keep-indexed (fn [i project] (when (some comp-decision-id (:decisions project)) i)) projects))
+        decisions        (:decisions (nth projects project-index))]
+    (println decisions)
+    (om/transact! state :projects
+                  (fn [projects]  (assoc-in projects [project-index :decisions] (vec (remove comp-decision-id decisions)))))
+    )
+  )
 
 (defn create-decision [state title]
   (om/transact! state :decisions #(conj % {:title title :score 0 :id (guid)})))
@@ -38,7 +59,7 @@
     :create (create-decision state val)
     nil))
 
-(defn big-decision-app [{:keys [decisions] :as state} owner]
+(defn big-decision-app [{:keys [projects] :as state} owner]
   (reify
     om/IWillMount
     (will-mount [_]
@@ -51,7 +72,7 @@
     (render-state [_ {:keys [comm]}]
       (dom/div nil
                (header)
-               (project state comm)))))
+               (map #(project/project % comm) projects)))))
 
 (om/root
   big-decision-app

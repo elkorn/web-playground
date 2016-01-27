@@ -22,7 +22,7 @@
 
 ;; Component
 
-(defn new-decision [c2 owner]
+(defn new-decision [_ owner]
   (reify
     om/IRenderState
     (render-state [_ {:keys [comm]}]

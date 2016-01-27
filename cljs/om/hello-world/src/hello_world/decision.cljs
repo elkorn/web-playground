@@ -37,8 +37,8 @@
     (om/set-state! owner :is-editing 0)
     (om/transact! decision :title #(om/get-state owner :edit-text))))
 
-(defn destroy [decision comm]
-  (put! comm [:destroy @decision]))
+(defn destroy [project-id decision comm]
+  (put! comm [:destroy {:project-id project-id :decision @decision}]))
 
 ;; Component
 
@@ -51,7 +51,7 @@
        :is-editing 0})
 
     om/IRenderState
-    (render-state [_ {:keys [comm] :as state}]
+    (render-state [_ {:keys [comm project-id] :as state}]
       (dom/li #js {:className "decision"}
               (dom/div #js {:className "decision-view"}
           (if
@@ -68,7 +68,7 @@
                            :onClick   #(downvote % decision)
                            :disabled  (downvote-disabled decision)} "-")
           (dom/button #js {:className "decision-destroy"
-                           :onClick   #(destroy decision comm)} "X")
+                           :onClick   #(destroy project-id decision comm)} "X")
           (stars decision))))
     )
   )
