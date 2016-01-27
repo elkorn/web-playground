@@ -4,6 +4,7 @@
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
             [hello-world.utils :refer [guid indices comp-id]]
+            [hello-world.new-project :as new-project]
             [hello-world.project :as project]))
 
 
@@ -66,11 +67,15 @@
 (defn destroy-project [state {:keys [project-id]}]
   (modify-projects state #(vec (remove (comp-id {:id project-id}) %))))
 
+(defn create-project [state {:keys [name]}]
+  (modify-projects state #(conj % {:name name :id (guid) :projects []})))
+
 (defn handle-event [type state val]
   (case type
     :destroy (destroy-decision state val)
     :destroy-project (destroy-project state val)
     :create (create-decision state val)
+    :create-project (create-project state val)
     nil))
 
 (defn big-decision-app [{:keys [projects] :as state} owner]
@@ -86,6 +91,7 @@
     (render-state [_ {:keys [comm]}]
       (dom/div nil
                (header)
+               (om/build new-project/new-project nil {:init-state {:comm comm}})
                (map #(project/project % comm) projects)))))
 
 (om/root
